@@ -1,0 +1,21 @@
+{
+  "name": "clockwork-echoes",
+  "version": "0.1.0",
+  "description": "发条回响 Clockwork Echoes — 时间回环解谜：每一轮的你都会被记住，和过去的自己一起开门（TS + Canvas，零运行时依赖）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "solve": "node --experimental-strip-types tools/solve.ts",
+    "check": "tsc --noEmit && vitest run && vite build"
+  },
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  },
+  "private": true
+}

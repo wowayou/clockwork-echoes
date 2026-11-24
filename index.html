@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="发条回响 — 时间回环解谜。每拧一圈发条就多一个你：过去的你会重演你按过的每一个键，和他们一起开门、推箱、躲开巡逻机。" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&display=swap" />
+    <title>发条回响</title>
+  </head>
+  <body>
+    <canvas id="bg" aria-hidden="true"></canvas>
+    <main id="app" data-screen="title">
+      <!-- Title -->
+      <section class="screen" id="screen-title" aria-labelledby="logo">
+        <div class="title-wrap">
+          <div class="title-copy">
+            <p class="eyebrow">时间回环解谜 · 十二层钟楼</p>
+            <h1 id="logo" class="logo" aria-label="发条回响">
+              <span class="logo-echo" aria-hidden="true">发条回响</span>
+              <span class="logo-echo" aria-hidden="true">发条回响</span>
+              <span class="logo-main">发条<br />回响</span>
+            </h1>
+            <p class="tagline">每拧一圈发条，就多一个你。<br />过去的你会重演你按过的每一个键。</p>
+            <div class="title-actions">
+              <button type="button" class="btn primary" data-action="continue" id="btn-continue">开始</button>
+              <button type="button" class="btn" data-action="levels">钟面选层</button>
+              <button type="button" class="btn quiet" data-action="howto">怎么玩</button>
+            </div>
+          </div>
+          <figure class="title-demo">
+            <canvas id="demo" role="img" aria-label="演示：第一个你踩住圆盘，时间倒流后，第二个你穿过打开的门。"></canvas>
+            <figcaption id="demo-caption">第一轮：踩住圆盘</figcaption>
+          </figure>
+        </div>
+        <button type="button" class="icon-btn corner" data-action="settings" aria-label="设置">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" /><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5" /></svg>
+        </button>
+      </section>
+
+      <!-- Level select: a clock dial, one floor per hour -->
+      <section class="screen" id="screen-levels" aria-labelledby="levels-h">
+        <header class="bar">
+          <button type="button" class="icon-btn" data-action="title" aria-label="返回标题">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" /></svg>
+          </button>
+          <h2 id="levels-h">钟面</h2>
+          <p class="bar-stat" id="levels-stat"></p>
+        </header>
+        <div class="dial-wrap">
+          <div class="dial" id="dial">
+            <div class="dial-face" aria-hidden="true"></div>
+            <div class="dial-hand" id="dial-hand" aria-hidden="true"></div>
+            <div class="dial-center" id="dial-center">
+              <p class="dc-chapter" id="dc-chapter"></p>
+              <p class="dc-name" id="dc-name"></p>
+              <p class="dc-meta" id="dc-meta"></p>
+              <button type="button" class="btn primary small" data-action="enter" id="dc-enter">进入</button>
+            </div>
+          </div>
+          <ol class="chapter-key" aria-label="三章">
+            <li><span class="ck-range">I–IV</span> 上弦 <span class="ck-blurb">每拧一圈发条，就多一个你。</span></li>
+            <li><span class="ck-range">V–VIII</span> 齿合 <span class="ck-blurb">过去的你重演的是按键，不是路线。</span></li>
+            <li><span class="ck-range">IX–XII</span> 擒纵 <span class="ck-blurb">巡逻机抓住一个人，就会停下。</span></li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Play -->
+      <section class="screen" id="screen-play" aria-labelledby="lvl-name">
+        <header class="bar play-bar">
+          <button type="button" class="icon-btn" data-action="levels" aria-label="回到钟面（Esc）">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" /></svg>
+          </button>
+          <div class="lvl-title">
+            <span class="lvl-hour" id="lvl-hour"></span>
+            <h2 class="lvl-name" id="lvl-name"></h2>
+          </div>
+          <div class="keys-meter" id="keys-meter" role="img"></div>
+          <button type="button" class="icon-btn" data-action="help" aria-label="规则与图例（?）">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.8v.6" /><path class="dot" d="M12 17.2v.1" /></svg>
+          </button>
+          <button type="button" class="icon-btn" data-action="settings" aria-label="设置">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" /><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8M18.5 18.5l-1.8-1.8M7.3 7.3 5.5 5.5" /></svg>
+          </button>
+        </header>
+
+        <div class="stage" id="stage">
+          <canvas id="board" role="img" aria-label="棋盘"></canvas>
+          <div class="banner" id="banner" role="note">
+            <p id="banner-text"></p>
+            <div class="banner-actions">
+              <button type="button" class="link-btn" data-action="tip" id="btn-tip">提示</button>
+              <button type="button" class="link-btn" data-action="demo" id="btn-demo">看参考解法</button>
+              <button type="button" class="link-btn" data-action="dismiss" aria-label="收起">收起</button>
+            </div>
+          </div>
+          <p class="toast" id="toast" aria-hidden="true"></p>
+          <p class="preview-tag" id="preview-tag" aria-hidden="true"></p>
+        </div>
+
+        <div class="timeline-wrap">
+          <div class="tl-head">
+            <p class="tl-clock"><span id="tl-tick">0</span><span class="tl-of"> / <span id="tl-ticks">0</span> 拍</span></p>
+            <p class="tl-who" id="tl-who"></p>
+            <p class="tl-hint"><span class="hint-fine">鼠标悬停在某一拍上，预览那一刻</span><span class="hint-touch">长按某一拍，预览那一刻</span></p>
+          </div>
+          <div class="timeline" id="timeline" role="grid" aria-label="时间轴：每一行是一个你，每一格是一拍里按下的键"></div>
+        </div>
+
+        <div class="controls">
+          <div class="dpad" aria-label="方向">
+            <button type="button" class="pad up" data-dir="1" aria-label="上"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg></button>
+            <button type="button" class="pad left" data-dir="4" aria-label="左"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg></button>
+            <button type="button" class="pad wait" data-dir="0" aria-label="原地等一拍"><span>等</span></button>
+            <button type="button" class="pad right" data-dir="2" aria-label="右"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></button>
+            <button type="button" class="pad down" data-dir="3" aria-label="下"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
+          </div>
+          <div class="actions">
+            <button type="button" class="act" data-action="undo" id="btn-undo"><span class="act-label">撤销</span><kbd>Z</kbd></button>
+            <button type="button" class="act" data-action="wait"><span class="act-label">等一拍</span><kbd>空格</kbd></button>
+            <button type="button" class="act strong" data-action="end" id="btn-end"><span class="act-label">收束本轮</span><kbd>回车</kbd></button>
+            <button type="button" class="act" data-action="restart" id="btn-restart"><span class="act-label">重来</span><kbd>R</kbd></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dialogs -->
+      <div class="overlay" id="ov-win" hidden>
+        <div class="card" role="dialog" aria-modal="true" aria-labelledby="win-h">
+          <div class="medal" id="win-medal" aria-hidden="true"></div>
+          <p class="eyebrow" id="win-eyebrow"></p>
+          <h2 id="win-h">钟声响了</h2>
+          <p class="card-text" id="win-text"></p>
+          <div class="card-actions">
+            <button type="button" class="btn primary" data-action="next" id="btn-next">下一层</button>
+            <button type="button" class="btn" data-action="again">再来一次</button>
+            <button type="button" class="btn quiet" data-action="levels">回到钟面</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay" id="ov-spent" hidden>
+        <div class="card" role="dialog" aria-modal="true" aria-labelledby="spent-h">
+          <p class="eyebrow">没有人走到钟面</p>
+          <h2 id="spent-h">发条用完了</h2>
+          <p class="card-text" id="spent-text"></p>
+          <div class="card-actions">
+            <button type="button" class="btn primary" data-action="undo">撤销一步 <kbd>Z</kbd></button>
+            <button type="button" class="btn" data-action="restart">从头再来 <kbd>R</kbd></button>
+            <button type="button" class="btn quiet" data-action="tip">看提示</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay" id="ov-help" hidden>
+        <div class="card wide" role="dialog" aria-modal="true" aria-labelledby="help-h">
+          <h2 id="help-h">怎么玩</h2>
+          <ol class="rules">
+            <li><b>每一步都是一拍。</b>发条只够走固定的拍数，走完时间就倒流回起点。</li>
+            <li><b>过去的你会重演。</b>重演的是你按下的每一个键，连撞在门上的那一下也算。所以门关着时你往里走，下一轮有人把门打开，那个过去的你就会真的走进去。</li>
+            <li><b>任何一个你走到钟面，这一层就过了。</b>拍数和次数都用完还没人到，就撤销或重来。</li>
+            <li><b>虚线是预告。</b>它画的是你原地不动时，过去的你和巡逻机接下来会去哪里。你每做一件事，虚线都会跟着变。</li>
+          </ol>
+          <ul class="legend" id="legend"></ul>
+          <p class="keys-help"><kbd>↑↓←→</kbd>/<kbd>WASD</kbd> 走 · <kbd>空格</kbd> 等一拍 · <kbd>回车</kbd> 收束本轮 · <kbd>Z</kbd> 撤销 · <kbd>R</kbd> 重来 · <kbd>Esc</kbd> 返回 · 手机上可以在棋盘上滑动</p>
+          <div class="card-actions">
+            <button type="button" class="btn primary" data-action="close">知道了</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay" id="ov-settings" hidden>
+        <div class="card" role="dialog" aria-modal="true" aria-labelledby="settings-h">
+          <h2 id="settings-h">设置</h2>
+          <div class="toggles">
+            <label class="toggle"><input type="checkbox" id="set-sfx" /><span>音效</span></label>
+            <label class="toggle"><input type="checkbox" id="set-music" /><span>音乐盒</span></label>
+            <label class="toggle"><input type="checkbox" id="set-reduced" /><span>减少动态效果</span></label>
+          </div>
+          <div class="danger-zone">
+            <button type="button" class="btn quiet" data-action="reset-ask" id="btn-reset-ask">清除进度</button>
+            <p class="confirm" id="reset-confirm" hidden>
+              清除全部过关记录？
+              <button type="button" class="btn small danger" data-action="reset-do">清除</button>
+              <button type="button" class="btn small quiet" data-action="reset-cancel">取消</button>
+            </p>
+          </div>
+          <div class="card-actions">
+            <button type="button" class="btn primary" data-action="close">完成</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div id="live" class="sr-only" aria-live="polite"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
